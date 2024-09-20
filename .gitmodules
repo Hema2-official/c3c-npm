@@ -1,0 +1,3 @@
+[submodule "c3c"]
+	path = c3c
+	url = https://github.com/c3lang/c3c.git
