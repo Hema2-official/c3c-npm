@@ -45,8 +45,84 @@ jobs:
           xcopy /Y       .\c3c\msvc_build_libraries.py .\npm\@c3-lang\c3c-win32-x64
           move           .npmrc                        .\npm\@c3-lang\c3c-win32-x64
           cd .\npm\@c3-lang\c3c-win32-x64
-          echo Files to be published:
-          dir
+          npm publish --access public
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+
+  publish-linux-x64:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          submodules: 'true'
+      
+      - name: Install common deps
+        run: sudo apt-get install zlib1g zlib1g-dev python3 ninja-build curl
+
+      - name: Install Clang ${{env.LLVM_RELEASE_VERSION_LINUX}}
+        run: |
+          wget -O - https://apt.llvm.org/llvm-snapshot.gpg.key | sudo apt-key add -
+          if [[ "${{env.LLVM_RELEASE_VERSION_LINUX}}" < 18 ]]; then
+            sudo add-apt-repository "deb http://apt.llvm.org/focal/ llvm-toolchain-focal-${{env.LLVM_RELEASE_VERSION_LINUX}} main"
+            sudo apt-get update
+            sudo apt-get install -y -t llvm-toolchain-focal-${{env.LLVM_RELEASE_VERSION_LINUX}} libpolly-${{env.LLVM_RELEASE_VERSION_LINUX}}-dev \
+              clang-${{env.LLVM_RELEASE_VERSION_LINUX}} llvm-${{env.LLVM_RELEASE_VERSION_LINUX}} llvm-${{env.LLVM_RELEASE_VERSION_LINUX}}-dev \
+              lld-${{env.LLVM_RELEASE_VERSION_LINUX}} liblld-${{env.LLVM_RELEASE_VERSION_LINUX}}-dev libmlir-${{env.LLVM_RELEASE_VERSION_LINUX}} \
+              libmlir-${{env.LLVM_RELEASE_VERSION_LINUX}}-dev mlir-${{env.LLVM_RELEASE_VERSION_LINUX}}-tools
+          else
+            if [[ "${{env.LLVM_RELEASE_VERSION_LINUX}}" < "${{env.LLVM_DEV_VERSION}}" ]]; then
+              sudo add-apt-repository "deb http://apt.llvm.org/focal/ llvm-toolchain-focal-${{env.LLVM_RELEASE_VERSION_LINUX}} main"
+              sudo apt-get update
+              sudo apt-get install -y -t llvm-toolchain-focal-${{env.LLVM_RELEASE_VERSION_LINUX}} libpolly-${{env.LLVM_RELEASE_VERSION_LINUX}}-dev \
+                clang-${{env.LLVM_RELEASE_VERSION_LINUX}} llvm-${{env.LLVM_RELEASE_VERSION_LINUX}} llvm-${{env.LLVM_RELEASE_VERSION_LINUX}}-dev \
+                lld-${{env.LLVM_RELEASE_VERSION_LINUX}} liblld-${{env.LLVM_RELEASE_VERSION_LINUX}}-dev
+            else
+              sudo add-apt-repository "deb http://apt.llvm.org/focal/ llvm-toolchain-focal main"
+              sudo apt-get install -y -t llvm-toolchain-focal libpolly-${{env.LLVM_RELEASE_VERSION_LINUX}}-dev \
+                clang-${{env.LLVM_RELEASE_VERSION_LINUX}} llvm-${{env.LLVM_RELEASE_VERSION_LINUX}} llvm-${{env.LLVM_RELEASE_VERSION_LINUX}}-dev \
+                lld-${{env.LLVM_RELEASE_VERSION_LINUX}} liblld-${{env.LLVM_RELEASE_VERSION_LINUX}}-dev
+            fi
+          fi
+
+      - name: CMake
+        run: |
+          cd c3c
+          cmake -B build \
+                -G Ninja \
+                -DCMAKE_BUILD_TYPE=Release \
+                -DCMAKE_C_COMPILER=clang-${{env.LLVM_RELEASE_VERSION_LINUX}} \
+                -DCMAKE_CXX_COMPILER=clang++-${{env.LLVM_RELEASE_VERSION_LINUX}} \
+                -DCMAKE_LINKER=lld-link-${{env.LLVM_RELEASE_VERSION_LINUX}} \
+                -DCMAKE_OBJCOPY=llvm-objcopy-${{env.LLVM_RELEASE_VERSION_LINUX}} \
+                -DCMAKE_STRIP=llvm-strip-${{env.LLVM_RELEASE_VERSION_LINUX}} \
+                -DCMAKE_DLLTOOL=llvm-dlltool-${{env.LLVM_RELEASE_VERSION_LINUX}} \
+                -DC3_LLVM_VERSION=${{env.LLVM_RELEASE_VERSION_LINUX}}
+          cmake --build build
+
+      # - name: bundle_output
+      #   run: |
+      #     mkdir c3
+      #     cp -r lib c3
+      #     cp msvc_build_libraries.py c3
+      #     cp build/c3c c3
+      #     tar czf c3-linux-Release.tar.gz c3
+      
+      - name: Set up NPM
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20.x'
+          registry-url: 'https://registry.npmjs.org'
+      
+      - name: Publish to NPM
+        run: |
+          cp -r c3c/lib                     npm/@c3-lang/c3c-linux-x64
+          cp    c3c/msvc_build_libraries.py npm/@c3-lang/c3c-linux-x64
+          cp    c3c/build/c3c               npm/@c3-lang/c3c-linux-x64
+          mv    .npmrc                      npm/@c3-lang/c3c-linux-x64
+          cd npm/@c3-lang/c3c-linux-x64
           npm publish --access public
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
