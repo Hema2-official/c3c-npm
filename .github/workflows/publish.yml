@@ -31,12 +31,19 @@ jobs:
           cmake -B build -G "Visual Studio 17 2022" -A x64 -DCMAKE_BUILD_TYPE=Release
           cmake --build build --config Release
 
+      - name: Set up NPM
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20.x'
+          registry-url: 'https://registry.npmjs.org'
+
       - name: Publish to NPM
         run: |
           xcopy /Y       .\c3c\build\Release\c3c.exe   .\npm\@c3-lang\c3c-win32-x64
           xcopy /Y /I /E .\c3c\build\Release\c3c_rt    .\npm\@c3-lang\c3c-win32-x64\c3c_rt
           xcopy /Y /I /E .\c3c\lib                     .\npm\@c3-lang\c3c-win32-x64\lib
           xcopy /Y       .\c3c\msvc_build_libraries.py .\npm\@c3-lang\c3c-win32-x64
+          move           .npmrc                        .\npm\@c3-lang\c3c-win32-x64
           cd .\npm\@c3-lang\c3c-win32-x64
           echo Files to be published:
           dir
