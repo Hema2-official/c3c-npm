@@ -1,0 +1,42 @@
+name: Build and publish binaries to NPM
+
+on:
+  workflow_dispatch:
+
+env:
+  LLVM_RELEASE_VERSION_WINDOWS: 18
+  LLVM_RELEASE_VERSION_MAC: 17
+  LLVM_RELEASE_VERSION_LINUX: 17
+  LLVM_RELEASE_VERSION_UBUNTU20: 17
+  LLVM_DEV_VERSION: 20
+
+jobs:
+
+  publish-win32-x64:
+    runs-on: windows-latest
+
+    defaults:
+      run:
+        shell: cmd
+    
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: CMake
+        run: |
+          cd c3c
+          cmake -B build -G "Visual Studio 17 2022" -A x64 -DCMAKE_BUILD_TYPE=Release
+          cmake --build build --config Release
+
+      - name: Publish to NPM
+        run: |
+          xcopy /Y /I .\c3c\build\Release\c3c.exe   .\npm\@c3-lang\c3c-win32-x64
+          xcopy /Y /I .\c3c\build\Release\c3c_rt    .\npm\@c3-lang\c3c-win32-x64\c3c_rt
+          xcopy /Y /I .\c3c\lib                     .\npm\@c3-lang\c3c-win32-x64\lib
+          xcopy /Y /I .\c3c\msvc_build_libraries.py .\npm\@c3-lang\c3c-win32-x64
+          cd .\npm\@c3-lang\c3c-win32-x64
+          echo Files to be published:
+          dir
+          npm publish --access public
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
