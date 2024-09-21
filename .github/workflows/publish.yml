@@ -116,3 +116,47 @@ jobs:
           npm publish --access public
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+
+  publish-darwin-x64:
+    runs-on: macos-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          submodules: 'true'
+      
+      - name: Download LLVM
+        run: |
+          brew install llvm@${{ env.LLVM_RELEASE_VERSION_MAC }} ninja curl
+          echo "/opt/homebrew/opt/llvm@${{ env.LLVM_RELEASE_VERSION_MAC }}/bin" >> $GITHUB_PATH
+          TMP_PATH=$(xcrun --show-sdk-path)/user/include
+          echo "CPATH=$TMP_PATH" >> $GITHUB_ENV
+
+      - name: CMake
+        if: env.LLVM_RELEASE_VERSION_MAC < 18
+        run: |
+          cmake -B build -G Ninja -DC3_LLVM_VERSION=${{env.LLVM_RELEASE_VERSION_MAC}} -DCMAKE_BUILD_TYPE=Release
+          cmake --build build
+      - name: CMake18
+        if: env.LLVM_RELEASE_VERSION_MAC >= 18
+        run: |
+          cmake -B build -G Ninja -DC3_LLVM_VERSION=${{env.LLVM_RELEASE_VERSION_MAC}}.1 -DCMAKE_BUILD_TYPE=Release
+          cmake --build build
+
+      - name: Set up NPM
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20.x'
+          registry-url: 'https://registry.npmjs.org'
+
+      - name: Publish to NPM
+        run: |
+          cp -r c3c/lib                     npm/@c3-lang/c3c-darwin-x64
+          cp    c3c/msvc_build_libraries.py npm/@c3-lang/c3c-darwin-x64
+          cp    c3c/build/c3c               npm/@c3-lang/c3c-darwin-x64
+          cd npm/@c3-lang/c3c-darwin-x64
+          npm publish --access public
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
