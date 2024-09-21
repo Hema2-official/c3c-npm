@@ -33,10 +33,10 @@ jobs:
 
       - name: Publish to NPM
         run: |
-          xcopy /Y /I .\c3c\build\Release\c3c.exe   .\npm\@c3-lang\c3c-win32-x64
-          xcopy /Y /I .\c3c\build\Release\c3c_rt    .\npm\@c3-lang\c3c-win32-x64\c3c_rt
-          xcopy /Y /I .\c3c\lib                     .\npm\@c3-lang\c3c-win32-x64\lib
-          xcopy /Y /I .\c3c\msvc_build_libraries.py .\npm\@c3-lang\c3c-win32-x64
+          xcopy /Y       .\c3c\build\Release\c3c.exe   .\npm\@c3-lang\c3c-win32-x64
+          xcopy /Y /I /E .\c3c\build\Release\c3c_rt    .\npm\@c3-lang\c3c-win32-x64\c3c_rt
+          xcopy /Y /I /E .\c3c\lib                     .\npm\@c3-lang\c3c-win32-x64\lib
+          xcopy /Y       .\c3c\msvc_build_libraries.py .\npm\@c3-lang\c3c-win32-x64
           cd .\npm\@c3-lang\c3c-win32-x64
           echo Files to be published:
           dir
