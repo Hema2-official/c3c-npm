@@ -1,0 +1,23 @@
+{
+  "name": "@c3-lang/c3c-linux-x64",
+  "version": "0.6.2",
+  "description": "Compiler for the C3 language (Linux 64-bit binary)",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/c3lang/c3c.git"
+  },
+  "bugs": {
+    "url": "https://github.com/Hema2-official/c3c-npm/issues"
+  },
+  "license": "LGPL-3.0-only",
+  "preferUnplugged": true,
+  "engines": {
+    "node": ">=18"
+  },
+  "os": [
+    "linux"
+  ],
+  "cpu": [
+    "x64"
+  ]
+}
