@@ -137,11 +137,13 @@ jobs:
       - name: CMake
         if: env.LLVM_RELEASE_VERSION_MAC < 18
         run: |
+          cd c3c
           cmake -B build -G Ninja -DC3_LLVM_VERSION=${{env.LLVM_RELEASE_VERSION_MAC}} -DCMAKE_BUILD_TYPE=Release
           cmake --build build
       - name: CMake18
         if: env.LLVM_RELEASE_VERSION_MAC >= 18
         run: |
+          cd c3c
           cmake -B build -G Ninja -DC3_LLVM_VERSION=${{env.LLVM_RELEASE_VERSION_MAC}}.1 -DCMAKE_BUILD_TYPE=Release
           cmake --build build
 
