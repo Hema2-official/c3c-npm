@@ -82,7 +82,7 @@ export function checkAndPrepareBinary() {
     // Check if a path is set in the environment
     if (process.env.C3C_BINARY_PATH) {
         const binPath = process.env.C3C_BINARY_PATH;
-        if (fs.existsSync(binPath)) {
+        if (fs.existsSync(binPath) && fs.statSync(binPath).isFile()) {
             return binPath;
         } else {
             console.warn(`[c3c] Ignoring invalid C3C_BINARY_PATH: "${binPath}"`);
