@@ -1,6 +1,6 @@
 {
   "name": "@c3-lang/c3c",
-  "version": "0.6.2",
+  "version": "0.6.2-stable",
   "description": "Compiler for the C3 language",
   "repository": {
     "type": "git",
